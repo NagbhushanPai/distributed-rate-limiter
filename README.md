@@ -36,18 +36,21 @@ Client → Load Balancer → Flask Instances → Redis → Lua Script
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/distributed-rate-limiter.git
 cd distributed-rate-limiter
 ```
 
 2. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -55,11 +58,13 @@ pip install -r requirements.txt
 ### Running Locally
 
 1. Start Redis using Docker Compose:
+
 ```bash
 docker-compose up -d
 ```
 
 2. Run the Flask application:
+
 ```bash
 python app.py
 ```
@@ -75,10 +80,12 @@ python app.py
 Check if a request is allowed under the rate limit.
 
 **Parameters:**
+
 - `user_id` (required): User identifier (string)
 - `tokens` (optional): Tokens to consume (default: 1)
 
 **Response:**
+
 ```json
 {
   "allowed": true,
@@ -88,6 +95,7 @@ Check if a request is allowed under the rate limit.
 ```
 
 **Example:**
+
 ```bash
 curl -X POST "http://localhost:5000/allow?user_id=user123&tokens=1"
 ```
@@ -99,6 +107,7 @@ curl -X POST "http://localhost:5000/allow?user_id=user123&tokens=1"
 Get current rate limiter status for a user.
 
 **Response:**
+
 ```json
 {
   "tokens": 85.5,
@@ -115,6 +124,7 @@ Get current rate limiter status for a user.
 Reset the rate limiter for a user (back to full capacity).
 
 **Response:**
+
 ```json
 {
   "success": true
@@ -128,6 +138,7 @@ Reset the rate limiter for a user (back to full capacity).
 Health check endpoint (verifies Redis connectivity).
 
 **Response:**
+
 ```json
 {
   "status": "healthy"
@@ -181,6 +192,7 @@ docker-compose up -d
 ```
 
 This starts:
+
 - Flask application on port 5000
 - Redis on port 6379
 

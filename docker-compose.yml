@@ -14,6 +14,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - rate-limiter
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: distributed-rate-limiter-app
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FLASK_ENV=production
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - rate-limiter
+    restart: unless-stopped
 
 volumes:
   redis_data:
+
+networks:
+  rate-limiter:
+    driver: bridge
