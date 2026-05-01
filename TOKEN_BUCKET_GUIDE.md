@@ -21,6 +21,7 @@ A clean, production-ready Token Bucket implementation in Python. The algorithm i
 Tokens are stored as floats, not integers. This prevents loss of precision over time.
 
 **Example:** With `refill_rate=10.5` tokens/sec:
+
 - After 0.1s: `1.05` tokens added (not rounded to 1)
 - After 1000 requests: precision maintained
 
@@ -53,6 +54,7 @@ self.tokens = min(self.tokens + tokens_to_add, self.capacity)
 **Scenario:** User makes 150 requests rapidly (capacity = 100, refill_rate = 10)
 
 **Behavior:**
+
 - Requests 1-100: Allowed ✓ (use all tokens in bucket)
 - Request 101: Denied ✗ (no tokens available)
 - After 0.1s: 1 new token → Request 101 allowed
@@ -76,15 +78,16 @@ Tokens over time:
 
 **Precision loss at different levels:**
 
-| Time Unit | Precision Loss | Impact |
-|-----------|---|---|
+| Time Unit       | Precision Loss     | Impact            |
+| --------------- | ------------------ | ----------------- |
 | Seconds (float) | Negligible (~1e-9) | ✓ Production safe |
-| Milliseconds | ~0.1% error | ⚠ Acceptable |
-| Microseconds | ~0.001% | ✓ Excellent |
+| Milliseconds    | ~0.1% error        | ⚠ Acceptable      |
+| Microseconds    | ~0.001%            | ✓ Excellent       |
 
 **Current implementation:** Uses `time.time()` (float seconds = ~microsecond precision)
 
 **Example:**
+
 ```python
 refill_rate = 10  # tokens/sec
 
@@ -98,6 +101,7 @@ tokens_to_add = 0.001 * 10 = 0.01  # 0.01 tokens added
 **Scenario:** System clock jumps backward or forward
 
 **Backward drift** (clock goes backward):
+
 ```python
 elapsed = -0.5  # Negative time!
 tokens_to_add = -0.5 * 10 = -5  # Loses 5 tokens!
@@ -111,6 +115,7 @@ if current_time < self.last_refill:
 ```
 
 **Forward drift** (clock jumps ahead):
+
 ```python
 elapsed = 100  # System clock jumped 100 seconds!
 tokens_to_add = 100 * 10 = 1000 tokens
@@ -124,6 +129,7 @@ self.tokens = min(1000 + 50, 100) = 100  # Capped safely
 **Scenario:** `refill_rate=0` (tokens never refill)
 
 **Behavior:**
+
 ```python
 tokens_to_add = elapsed * 0 = 0
 # Tokens only decrease, never increase
@@ -136,6 +142,7 @@ tokens_to_add = elapsed * 0 = 0
 **Scenario:** `refill_rate=0.001` (1 token per 1000 seconds)
 
 **Behavior:**
+
 ```python
 after 100s: tokens_to_add = 100 * 0.001 = 0.1  # 0.1 tokens
 after 1000s: tokens_to_add = 1000 * 0.001 = 1.0  # 1 token
@@ -148,6 +155,7 @@ after 1000s: tokens_to_add = 1000 * 0.001 = 1.0  # 1 token
 **Scenario:** Requests 1 hour apart, capacity=100
 
 **Behavior:**
+
 ```python
 elapsed = 3600  # 1 hour in seconds
 tokens_to_add = 3600 * 10 = 36000  # 36000 tokens!
@@ -158,11 +166,11 @@ self.tokens = min(36000 + 0, 100) = 100  # Capped at capacity
 
 ## Performance Characteristics
 
-| Operation | Complexity | Time |
-|-----------|-----------|------|
-| `allow_request()` | O(1) | <1μs |
-| Memory per bucket | O(1) | ~48 bytes (2 floats) |
-| Throughput | - | Unlimited (no I/O) |
+| Operation         | Complexity | Time                 |
+| ----------------- | ---------- | -------------------- |
+| `allow_request()` | O(1)       | <1μs                 |
+| Memory per bucket | O(1)       | ~48 bytes (2 floats) |
+| Throughput        | -          | Unlimited (no I/O)   |
 
 ## Thread Safety (In-Memory)
 
@@ -175,7 +183,7 @@ class ThreadSafeTokenBucket(TokenBucket):
     def __init__(self, capacity, refill_rate):
         super().__init__(capacity, refill_rate)
         self.lock = threading.Lock()
-    
+
     def allow_request(self, current_time=None):
         with self.lock:
             return super().allow_request(current_time)
@@ -197,12 +205,14 @@ class ThreadSafeTokenBucket(TokenBucket):
 ## When to Use Token Bucket
 
 ✓ **Good for:**
+
 - API rate limiting
 - Bandwidth throttling
 - Burst-friendly limits
 - Simple, per-user limits
 
 ✗ **Not ideal for:**
+
 - Strict fairness (use Leaky Bucket)
 - Distributed systems (use Redis)
 - Complex policies (use custom logic)
