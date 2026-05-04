@@ -41,11 +41,11 @@ class RedisClient:
         
         self.token_bucket_script = self.client.register_script(script)
     
-    def execute_token_bucket(self, key, capacity, refill_rate, current_time, tokens_requested=1):
+    def execute_token_bucket(self, key, capacity, refill_rate, tokens_requested=1):
         """Execute token bucket Lua script"""
         return self.token_bucket_script(
             keys=[key],
-            args=[capacity, refill_rate, current_time, tokens_requested],
+            args=[capacity, refill_rate, tokens_requested],
             client=self.client
         )
     

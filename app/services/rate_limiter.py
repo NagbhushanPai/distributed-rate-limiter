@@ -50,14 +50,11 @@ class RateLimiterService:
             dict: {allowed: bool, remaining_tokens: int, retry_after: int}
         """
         key = self._get_key(identifier)
-        current_time = int(time.time() * 1000)  # milliseconds
-        
         try:
-            allowed, remaining, last_refill = redis_client.execute_token_bucket(
+            allowed, remaining, server_time = redis_client.execute_token_bucket(
                 key=key,
                 capacity=self.capacity,
                 refill_rate=self.refill_rate,
-                current_time=current_time,
                 tokens_requested=tokens
             )
             

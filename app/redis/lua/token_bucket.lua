@@ -1,11 +1,13 @@
 -- Token Bucket Rate Limiter - Lua Script
--- Atomically refills tokens, checks limit, and updates state
+-- Atomically refills tokens, checks limit, and updates state using Redis time
 
 local key = KEYS[1]
 local capacity = tonumber(ARGV[1])
 local refill_rate = tonumber(ARGV[2])
-local current_time = tonumber(ARGV[3])
-local tokens_requested = tonumber(ARGV[4])
+local tokens_requested = tonumber(ARGV[3])
+
+local time_parts = redis.call('TIME')
+local current_time = (tonumber(time_parts[1]) * 1000) + math.floor(tonumber(time_parts[2]) / 1000)
 
 -- Get current state
 local state = redis.call('GET', key)
@@ -41,4 +43,4 @@ end
 redis.call('SET', key, tokens .. ':' .. current_time)
 
 -- Return result
-return {allowed and 1 or 0, remaining, last_refill}
+return {allowed and 1 or 0, remaining, current_time}
