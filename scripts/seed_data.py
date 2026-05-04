@@ -28,4 +28,4 @@ for user_id, tokens, timestamp in test_users:
     r.set(key, value)
     print(f"  ✓ {user_id}: {tokens} tokens")
 
-print("✅ Seeding complete")
+print("Seeding complete")
