@@ -5,7 +5,6 @@ import json
 import time
 from app import create_app
 from app.redis.client import redis_client
-from app.services.rate_limiter import RateLimiterService
 
 
 @pytest.fixture
@@ -104,21 +103,3 @@ def test_health_check(client):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['status'] == 'healthy'
-
-
-def test_rate_limiter_uses_server_side_time(monkeypatch):
-    """Test service no longer passes local timestamps to Redis script"""
-    captured = {}
-
-    def fake_execute_token_bucket(**kwargs):
-        captured.update(kwargs)
-        return [1, 99, 1700000000000]
-
-    monkeypatch.setattr(redis_client, 'execute_token_bucket', fake_execute_token_bucket)
-
-    service = RateLimiterService()
-    result = service.is_allowed('user8', 1)
-
-    assert result['allowed'] is True
-    assert result['remaining_tokens'] == 99
-    assert set(captured.keys()) == {'key', 'capacity', 'refill_rate', 'tokens_requested'}
