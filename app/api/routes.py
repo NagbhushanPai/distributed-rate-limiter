@@ -28,9 +28,10 @@ def allow():
         - tokens: Tokens to consume (optional, default: 1)
     """
     try:
-        # Get parameters
-        user_id = request.args.get('user_id') or (request.json.get('user_id') if request.json else None)
-        tokens = int(request.args.get('tokens', 1) or (request.json.get('tokens', 1) if request.json else 1))
+        # Get parameters - use get_json() which safely returns None if no JSON
+        json_data = request.get_json(silent=True) or {}
+        user_id = request.args.get('user_id') or json_data.get('user_id')
+        tokens = int(request.args.get('tokens', 1) or json_data.get('tokens', 1))
         
         if not user_id:
             return jsonify({"error": ERROR_INVALID_USER_ID}), STATUS_BAD_REQUEST

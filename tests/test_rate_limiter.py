@@ -41,14 +41,21 @@ def test_allow_request_within_limit(client):
     assert data['remaining_tokens'] == 99
 
 
-def test_deny_request_exceeding_limit(client):
+def test_deny_request_exceeding_limit(client, app):
     """Test request exceeding limit"""
-    for i in range(100):
-        client.post('/allow?user_id=user2&tokens=1')
-    
-    response = client.post('/allow?user_id=user2&tokens=1')
-    data = json.loads(response.data)
-    assert data['allowed'] is False
+    # Use a service with refill_rate=0 to avoid tokens being added back during test
+    with app.app_context():
+        from app.services.rate_limiter import RateLimiterService
+        service = RateLimiterService(capacity=100, refill_rate=0)
+        
+        # Exhaust the bucket (capacity=100, no refill)
+        for i in range(100):
+            service.is_allowed('user2_no_refill', 1)
+        
+        # Request when bucket is empty should be denied
+        result = service.is_allowed('user2_no_refill', 1)
+        assert result['allowed'] is False, f"Expected denied but got: {result}"
+        assert result['remaining_tokens'] == 0
 
 
 def test_burst_traffic(client):
