@@ -2,7 +2,8 @@
 
 import time
 import logging
-from flask import current_app
+from flask import current_app, has_app_context
+from app.core.config import Config
 from app.redis.client import redis_client
 from app.core.constants import REDIS_KEY_PREFIX
 
@@ -13,8 +14,25 @@ class RateLimiterService:
     """Rate limiter service using Redis backend"""
     
     def __init__(self, capacity=None, refill_rate=None):
-        self.capacity = capacity or current_app.config['RATE_LIMIT_CAPACITY']
-        self.refill_rate = refill_rate or current_app.config['RATE_LIMIT_REFILL_RATE']
+        # Allow instantiation outside of a Flask application context by
+        # falling back to Config defaults when current_app is not available.
+        if capacity is not None:
+            self.capacity = capacity
+        else:
+            self.capacity = (
+                current_app.config['RATE_LIMIT_CAPACITY']
+                if has_app_context()
+                else Config.RATE_LIMIT_CAPACITY
+            )
+
+        if refill_rate is not None:
+            self.refill_rate = refill_rate
+        else:
+            self.refill_rate = (
+                current_app.config['RATE_LIMIT_REFILL_RATE']
+                if has_app_context()
+                else Config.RATE_LIMIT_REFILL_RATE
+            )
     
     def _get_key(self, identifier):
         """Generate Redis key"""

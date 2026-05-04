@@ -11,7 +11,7 @@
 ### 2. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/distributed-rate-limiter.git
+git clone https://github.com/NagbhushanPai/distributed-rate-limiter.git
 cd distributed-rate-limiter
 ```
 
@@ -40,10 +40,12 @@ pip install -r requirements.txt
 
 ### 5. Start Redis
 
+Make sure Docker Desktop is installed and running before using the Docker-based options below.
+
 **Option A: Using Docker Compose (Recommended)**
 
 ```bash
-docker-compose up -d redis
+docker compose up -d redis
 ```
 
 **Option B: Using Docker directly**
@@ -116,13 +118,13 @@ docker build -f docker/Dockerfile -t distributed-rate-limiter:latest .
 
 ```bash
 # Start all services (Redis + Flask)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### Environment Variables
@@ -213,10 +215,10 @@ spec:
 
 ```bash
 # Live logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Last 100 lines
-docker-compose logs --tail 100 app
+docker compose logs --tail 100 app
 ```
 
 ### Health Check
