@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class RateLimiterService:
     """Rate limiter service using Redis backend"""
     
-    def __init__(self, capacity=None, refill_rate=None):
+    def __init__(self, capacity=None, refill_rate=None, fail_open=None):
         # Allow instantiation outside of a Flask application context by
         # falling back to Config defaults when current_app is not available.
         if capacity is not None:
@@ -32,6 +32,15 @@ class RateLimiterService:
                 current_app.config['RATE_LIMIT_REFILL_RATE']
                 if has_app_context()
                 else Config.RATE_LIMIT_REFILL_RATE
+            )
+
+        if fail_open is not None:
+            self.fail_open = fail_open
+        else:
+            self.fail_open = (
+                current_app.config['RATE_LIMIT_FAIL_OPEN']
+                if has_app_context()
+                else Config.RATE_LIMIT_FAIL_OPEN
             )
     
     def _get_key(self, identifier):
@@ -75,11 +84,18 @@ class RateLimiterService:
         
         except Exception as e:
             logger.error(f"Rate limiter error for {identifier}: {str(e)}")
-            # Fail-open: allow request if Redis is down
+            if self.fail_open:
+                # Fail-open: allow request if Redis is down
+                return {
+                    "allowed": True,
+                    "remaining_tokens": self.capacity,
+                    "retry_after": 0
+                }
+
             return {
-                "allowed": True,
-                "remaining_tokens": self.capacity,
-                "retry_after": 0
+                "allowed": False,
+                "remaining_tokens": 0,
+                "retry_after": 1
             }
     
     def reset(self, identifier):

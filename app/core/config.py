@@ -21,6 +21,7 @@ class Config:
     # Rate Limiter
     RATE_LIMIT_CAPACITY = int(os.getenv('RATE_LIMIT_CAPACITY', 100))
     RATE_LIMIT_REFILL_RATE = float(os.getenv('RATE_LIMIT_REFILL_RATE', 10.0))
+    RATE_LIMIT_FAIL_OPEN = os.getenv('RATE_LIMIT_FAIL_OPEN', 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

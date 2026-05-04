@@ -20,3 +20,33 @@ def test_rate_limiter_uses_server_side_time(monkeypatch):
     assert result['allowed'] is True
     assert result['remaining_tokens'] == 99
     assert set(captured.keys()) == {'key', 'capacity', 'refill_rate', 'tokens_requested'}
+
+
+def test_rate_limiter_fails_open_by_default(monkeypatch):
+    """Redis errors should allow traffic by default."""
+    def raise_error(**kwargs):
+        raise RuntimeError('redis unavailable')
+
+    monkeypatch.setattr(redis_client, 'execute_token_bucket', raise_error)
+
+    service = RateLimiterService()
+    result = service.is_allowed('user9', 1)
+
+    assert result['allowed'] is True
+    assert result['remaining_tokens'] == service.capacity
+    assert result['retry_after'] == 0
+
+
+def test_rate_limiter_can_fail_closed(monkeypatch):
+    """Redis errors should reject traffic when fail-open is disabled."""
+    def raise_error(**kwargs):
+        raise RuntimeError('redis unavailable')
+
+    monkeypatch.setattr(redis_client, 'execute_token_bucket', raise_error)
+
+    service = RateLimiterService(fail_open=False)
+    result = service.is_allowed('user10', 1)
+
+    assert result['allowed'] is False
+    assert result['remaining_tokens'] == 0
+    assert result['retry_after'] == 1
